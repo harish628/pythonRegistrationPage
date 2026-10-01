@@ -1,0 +1,698 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}</style><style>:root{color-scheme:light dark;--md-bg:#fff;--md-text:rgba(0,0,0,.8);--md-muted:rgba(0,0,0,.6);--md-fill:rgba(0,0,0,.04);--md-fill-strong:rgba(0,0,0,.06);--md-rule:rgba(0,0,0,.1);--md-rule-strong:rgba(0,0,0,.16);--md-link:hsl(210 100% 45%)}@media (prefers-color-scheme:dark){:root:where(:not([data-theme="light"])){--md-bg:#0d0d0d;--md-text:rgba(255,255,255,.85);--md-muted:rgba(255,255,255,.6);--md-fill:rgba(255,255,255,.06);--md-fill-strong:rgba(255,255,255,.09);--md-rule:rgba(255,255,255,.14);--md-rule-strong:rgba(255,255,255,.22);--md-link:hsl(210 100% 72%)}}:root[data-theme="dark"]{color-scheme:dark;--md-bg:#0d0d0d;--md-text:rgba(255,255,255,.85);--md-muted:rgba(255,255,255,.6);--md-fill:rgba(255,255,255,.06);--md-fill-strong:rgba(255,255,255,.09);--md-rule:rgba(255,255,255,.14);--md-rule-strong:rgba(255,255,255,.22);--md-link:hsl(210 100% 72%)}:root[data-theme="light"]{color-scheme:light}@media print{:root,:root[data-theme="dark"]{color-scheme:light;--md-bg:#fff;--md-text:rgba(0,0,0,.8);--md-muted:rgba(0,0,0,.6);--md-fill:rgba(0,0,0,.04);--md-fill-strong:rgba(0,0,0,.06);--md-rule:rgba(0,0,0,.1);--md-rule-strong:rgba(0,0,0,.16);--md-link:hsl(210 100% 45%)}}body{background:var(--md-bg);color:var(--md-text);max-width:720px;margin:0 auto;padding:32px;display:flex;flex-direction:column;gap:10px;font:14px/1.55 -apple-system,BlinkMacSystemFont,'SF Pro','Segoe UI',sans-serif;overflow-wrap:break-word}body>:first-child{margin-top:0}h1,h2,h3,h4,h5,h6{margin:6px 0 0;line-height:1.25;font-weight:600;text-wrap:balance}h1{font-size:1.35em}h2{font-size:1.15em;color:var(--md-muted)}h3,h4,h5,h6{font-size:1em}p,ul,ol,blockquote,table,pre,hr{margin:0}strong{font-weight:600}a{color:var(--md-link);text-decoration:none}a:hover{text-decoration:underline}ul,ol{display:flex;flex-direction:column;gap:6px;padding-left:22px}ul{list-style:disc}ol{list-style:decimal}:is(li,td,th)>*+:is(p,ul,ol,blockquote){margin-top:6px}blockquote{display:flex;flex-direction:column;gap:10px;border-left:2px solid var(--md-rule);padding-left:10px;color:var(--md-muted)}:not(pre)>code{background:var(--md-fill);padding:1px 3px;border-radius:4px;font:.92em 'SF Mono',ui-monospace,Menlo,Consolas,monospace}a>code{background:none;color:inherit}pre{background:var(--md-fill);padding:10px 12px;border-radius:6px;overflow-x:auto;font:12px/1.5 'SF Mono',ui-monospace,Menlo,Consolas,monospace;margin-block:4px}pre code{background:none;padding:0;font:inherit}table{width:100%;border-collapse:separate;border-spacing:2px;font:inherit}th,td{padding:6px 8px;border-radius:3px;text-align:left;vertical-align:top}th{background:var(--md-fill-strong);font-weight:600}td{background:var(--md-fill)}:is(th,td) :not(pre)>code{background:transparent}hr{border:0;border-top:1px solid var(--md-rule-strong);margin-block:10px}img{max-width:100%;height:auto;border-radius:4px}</style>
+</head><body>
+<h1>Registration App: User Guide</h1>
+<p>A beginner-friendly guide to what we built, the technology behind it, and how every piece works. It covers both the <strong>theory</strong> (why things are done this way) and the <strong>technical</strong> side (the actual code and commands).</p>
+<hr>
+<h2>1. What We Built</h2>
+<p>A small web application where a user can register their <strong>name, place and phone number</strong>, then view, edit and delete those registrations. Data is stored permanently in a MySQL database.</p>
+<p>It supports the four CRUD operations:</p>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>Meaning</th>
+<th>HTTP method</th>
+<th>Example endpoint</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>C</strong>reate</td>
+<td>Add a new record</td>
+<td>POST</td>
+<td><code>/api/registrations</code></td>
+</tr>
+<tr>
+<td><strong>R</strong>ead</td>
+<td>Fetch one or all records</td>
+<td>GET</td>
+<td><code>/api/registrations</code>, <code>/api/registrations/1</code></td>
+</tr>
+<tr>
+<td><strong>U</strong>pdate</td>
+<td>Change an existing record</td>
+<td>PUT</td>
+<td><code>/api/registrations/1</code></td>
+</tr>
+<tr>
+<td><strong>D</strong>elete</td>
+<td>Remove a record</td>
+<td>DELETE</td>
+<td><code>/api/registrations/1</code></td>
+</tr>
+</tbody>
+</table>
+<p>The project is deliberately simple: no testing, Docker or CI/CD yet. Those are planned as later stages, and the structure is kept clean so they can be added without rewriting anything.</p>
+<hr>
+<h2>2. Architecture</h2>
+<p>The app has three layers. Each layer only talks to its neighbour.</p>
+<pre class="mermaid">flowchart TD
+    A[&#34;Browser&lt;br/&gt;HTML + CSS + JavaScript&#34;] --&gt;|&#34;HTTP requests with JSON (fetch)&#34;| B[&#34;Flask REST API&lt;br/&gt;routes + validation&#34;]
+    B --&gt;|&#34;SQLAlchemy ORM + PyMySQL&#34;| C[(&#34;MySQL 8&lt;br/&gt;registration_db&#34;)]
+    C --&gt;|rows| B
+    B --&gt;|&#34;JSON responses&#34;| A
+</pre>
+<p><strong>Theory: why layers?</strong> Separating the interface (browser), the logic (Flask) and the storage (MySQL) means you can change one without breaking the others. For example, you could replace the HTML page with a mobile app and the API and database would not need to change. This is called <strong>separation of concerns</strong>.</p>
+<h3>What happens when you click REGISTER</h3>
+<pre class="mermaid">sequenceDiagram
+    participant U as User
+    participant JS as app.js (browser)
+    participant F as Flask API
+    participant DB as MySQL
+    U-&gt;&gt;JS: Fills form, clicks REGISTER
+    JS-&gt;&gt;F: POST /api/registrations (JSON body)
+    F-&gt;&gt;F: Validate name, place, phone
+    F-&gt;&gt;DB: INSERT INTO registrations
+    DB--&gt;&gt;F: New row with id and timestamps
+    F--&gt;&gt;JS: 201 Created + JSON record
+    JS-&gt;&gt;F: GET /api/registrations
+    F-&gt;&gt;DB: SELECT all rows
+    DB--&gt;&gt;F: Rows
+    F--&gt;&gt;JS: 200 OK + JSON list
+    JS-&gt;&gt;U: Table refreshes
+</pre>
+<hr>
+<h2>3. Technologies Used (and Why)</h2>
+<table>
+<thead>
+<tr>
+<th>Technology</th>
+<th>Role</th>
+<th>Why we chose it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Python 3</strong></td>
+<td>Programming language for the backend</td>
+<td>Readable, beginner-friendly, huge ecosystem</td>
+</tr>
+<tr>
+<td><strong>Flask</strong></td>
+<td>Web framework</td>
+<td>Small and simple; gives you routing and JSON responses without extra weight</td>
+</tr>
+<tr>
+<td><strong>SQLAlchemy</strong> (via Flask-SQLAlchemy)</td>
+<td>ORM (Object-Relational Mapper)</td>
+<td>Lets you work with Python classes instead of writing raw SQL</td>
+</tr>
+<tr>
+<td><strong>PyMySQL</strong></td>
+<td>MySQL driver</td>
+<td>The pure-Python library that actually talks to MySQL</td>
+</tr>
+<tr>
+<td><strong>cryptography</strong></td>
+<td>Support library for PyMySQL</td>
+<td>MySQL 8 uses a secure login method (<code>caching_sha2_password</code>) that PyMySQL needs this for</td>
+</tr>
+<tr>
+<td><strong>python-dotenv</strong></td>
+<td>Loads the <code>.env</code> file</td>
+<td>Keeps passwords out of the source code</td>
+</tr>
+<tr>
+<td><strong>MySQL 8</strong></td>
+<td>Relational database</td>
+<td>Reliable, widely used, stores data permanently</td>
+</tr>
+<tr>
+<td><strong>HTML / CSS / JavaScript</strong></td>
+<td>Frontend</td>
+<td>No framework needed: HTML is structure, CSS is looks, JS is behaviour</td>
+</tr>
+<tr>
+<td><strong>fetch()</strong></td>
+<td>Browser API for HTTP calls</td>
+<td>Lets the page talk to the Flask API without reloading</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>4. Core Concepts (Theory)</h2>
+<h3>4.1 Client-server model</h3>
+<p>The <strong>client</strong> (your browser) asks for things; the <strong>server</strong> (Flask) answers. The browser never touches the database directly. It always goes through the server, which decides what is allowed.</p>
+<h3>4.2 REST API</h3>
+<p>REST is a convention for designing APIs around <strong>resources</strong> (here: <code>registrations</code>) and standard HTTP methods. The URL names the thing, and the method says what to do with it.</p>
+<ul>
+<li><code>GET /api/registrations</code> means &quot;give me all registrations&quot;.</li>
+<li><code>DELETE /api/registrations/5</code> means &quot;delete registration 5&quot;.</li>
+</ul>
+<h3>4.3 HTTP status codes</h3>
+<p>Every response carries a number that tells the client what happened.</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Meaning</th>
+<th>Where we use it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>200</td>
+<td>OK</td>
+<td>Successful read, update or delete</td>
+</tr>
+<tr>
+<td>201</td>
+<td>Created</td>
+<td>Successful create</td>
+</tr>
+<tr>
+<td>400</td>
+<td>Bad Request</td>
+<td>Missing field, too-long value, invalid ID</td>
+</tr>
+<tr>
+<td>404</td>
+<td>Not Found</td>
+<td>ID is valid but no such record</td>
+</tr>
+<tr>
+<td>500</td>
+<td>Server Error</td>
+<td>Database or unexpected failure</td>
+</tr>
+</tbody>
+</table>
+<h3>4.4 JSON</h3>
+<p>The format used to send data between browser and server. Example:</p>
+<pre><code class="language-json">{ &#34;name&#34;: &#34;Harish&#34;, &#34;place&#34;: &#34;Hyderabad&#34;, &#34;phone&#34;: &#34;9876543210&#34; }
+</code></pre>
+<h3>4.5 ORM (Object-Relational Mapping)</h3>
+<p>Instead of writing <code>INSERT INTO registrations ...</code> by hand, we define a Python class <code>Registration</code>. Each class attribute maps to a table column, and each object maps to a row. SQLAlchemy translates between them. It also protects against <strong>SQL injection</strong>, because values are passed as parameters rather than glued into SQL text.</p>
+<h3>4.6 Blueprints</h3>
+<p>A Flask Blueprint groups related routes in their own file. All <code>/api/registrations</code> routes live in <code>routes/registration_routes.py</code> and are plugged into the main app, which keeps <code>app.py</code> small.</p>
+<h3>4.7 Environment variables and secrets</h3>
+<p>Passwords must never be written into code (they would end up in Git). We store them in a <code>.env</code> file, which <code>.gitignore</code> excludes, and read them at runtime. <code>.env.example</code> shows which variables are needed without containing real secrets. This is a standard practice from the &quot;twelve-factor app&quot; approach.</p>
+<h3>4.8 Principle of least privilege</h3>
+<p>The app connects as <code>registration_user</code>, not <code>root</code>. That user can only <code>SELECT</code>, <code>INSERT</code>, <code>UPDATE</code> and <code>DELETE</code> on one table. If the app were ever compromised, the attacker could not drop databases or read other data.</p>
+<h3>4.9 Why phone is VARCHAR, not INT</h3>
+<p>Phone numbers are identifiers, not quantities. You never do arithmetic on them. As integers they would lose leading zeros and could not hold <code>+91</code> prefixes.</p>
+<h3>4.10 Validation</h3>
+<p>Never trust input from the browser. The server checks every request, even though the form also has basic checks, because anyone can call the API directly (for example with <code>curl</code>).</p>
+<h3>4.11 XSS protection</h3>
+<p>If a user registered with the name <code>&lt;script&gt;...&lt;/script&gt;</code> and we inserted it into the page as HTML, it could run code in other visitors' browsers. Our JavaScript uses <code>textContent</code> instead of <code>innerHTML</code> when filling the table, so such input is displayed as plain text.</p>
+<hr>
+<h2>5. Project Structure</h2>
+<pre><code class="language-text">registration-app/
+├── app.py                         # Creates the Flask app, /health, error handlers
+├── requirements.txt               # Python dependencies (pinned versions)
+├── README.md                      # Short setup reference
+├── .env.example                   # Template of required environment variables
+├── .gitignore                     # Keeps .env, venv, caches out of Git
+├── config/
+│   └── database.py                # Builds the DB connection string; creates `db`
+├── models/
+│   └── registration.py            # The Registration table as a Python class
+├── routes/
+│   └── registration_routes.py     # The CRUD API endpoints and validation
+├── templates/
+│   └── index.html                 # The page (form + table)
+└── static/
+    ├── css/style.css              # Styling
+    └── js/app.js                  # Frontend logic using fetch()
+</code></pre>
+<hr>
+<h2>6. Implementation Walkthrough</h2>
+<h3>6.1 Database</h3>
+<pre><code class="language-sql">CREATE TABLE registrations (
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  name       VARCHAR(100) NOT NULL,
+  place      VARCHAR(100) NOT NULL,
+  phone      VARCHAR(20)  NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+</code></pre>
+<ul>
+<li><code>AUTO_INCREMENT</code> makes MySQL assign each new <code>id</code> automatically.</li>
+<li><code>NOT NULL</code> makes the database itself reject empty values.</li>
+<li><code>created_at</code> is filled on insert; <code>updated_at</code> refreshes automatically on every update. MySQL does both, so our Python code never sets timestamps.</li>
+</ul>
+<p>The app does <strong>not</strong> create tables itself. We run the SQL once by hand, which keeps the app's database user limited to data operations only.</p>
+<h3>6.2 Configuration (<code>config/database.py</code>)</h3>
+<p>Reads <code>DB_HOST</code>, <code>DB_PORT</code>, <code>DB_NAME</code>, <code>DB_USER</code>, <code>DB_PASSWORD</code> and builds a connection string:</p>
+<pre><code class="language-text">mysql+pymysql://user:password@host:port/database?charset=utf8mb4
+</code></pre>
+<ul>
+<li><code>mysql+pymysql</code> tells SQLAlchemy to use the MySQL dialect with the PyMySQL driver.</li>
+<li><code>quote_plus</code> makes sure special characters in a password (like <code>@</code> or <code>#</code>) do not break the URL.</li>
+<li>It also creates the shared <code>db = SQLAlchemy()</code> object that the model and app both import.</li>
+</ul>
+<h3>6.3 Model (<code>models/registration.py</code>)</h3>
+<pre><code class="language-python">class Registration(db.Model):
+    __tablename__ = &#34;registrations&#34;
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(100), nullable=False)
+    ...
+    def to_dict(self):
+        return {&#34;id&#34;: self.id, &#34;name&#34;: self.name, ...}
+</code></pre>
+<p>The class mirrors the table. <code>to_dict()</code> converts a row into a plain dictionary so Flask can send it as JSON (timestamps are converted to ISO text).</p>
+<h3>6.4 Routes (<code>routes/registration_routes.py</code>)</h3>
+<table>
+<thead>
+<tr>
+<th>Function</th>
+<th>Route</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>create_registration</code></td>
+<td><code>POST /api/registrations</code></td>
+<td>Validates the JSON body, inserts a row, returns 201</td>
+</tr>
+<tr>
+<td><code>get_registrations</code></td>
+<td><code>GET /api/registrations</code></td>
+<td>Returns every row, ordered by id</td>
+</tr>
+<tr>
+<td><code>get_registration</code></td>
+<td><code>GET /api/registrations/&lt;id&gt;</code></td>
+<td>Returns one row or 404</td>
+</tr>
+<tr>
+<td><code>update_registration</code></td>
+<td><code>PUT /api/registrations/&lt;id&gt;</code></td>
+<td>Validates, updates the row, returns it</td>
+</tr>
+<tr>
+<td><code>delete_registration</code></td>
+<td><code>DELETE /api/registrations/&lt;id&gt;</code></td>
+<td>Deletes the row, returns a message</td>
+</tr>
+</tbody>
+</table>
+<p>Two helper functions do the shared work:</p>
+<ul>
+<li><strong><code>parse_id</code></strong> accepts only positive whole numbers. Anything else (like <code>abc</code> or <code>-5</code>) returns 400 &quot;Invalid ID&quot;. We take the ID as a string on purpose. If we had used Flask's <code>&lt;int:id&gt;</code>, a bad ID would produce Flask's own HTML 404 page instead of our JSON error.</li>
+<li><strong><code>validate_payload</code></strong> checks that the body is JSON, that <code>name</code>, <code>place</code> and <code>phone</code> are non-empty text, trims whitespace, and enforces the maximum lengths (100, 100, 20). It returns either cleaned data or an error message.</li>
+</ul>
+<h3>6.5 Application setup (<code>app.py</code>)</h3>
+<ul>
+<li><strong><code>create_app()</code></strong> is the &quot;application factory&quot; pattern: it builds and configures the app, connects the database, and registers the blueprint. This pattern makes later testing and Docker use easier.</li>
+<li><strong><code>pool_pre_ping</code></strong> makes SQLAlchemy test a database connection before using it, so stale connections (for example after MySQL restarts) are replaced instead of causing errors.</li>
+<li><strong><code>GET /</code></strong> serves the HTML page. <strong><code>GET /health</code></strong> returns <code>{&quot;status&quot;: &quot;UP&quot;}</code>, which is the kind of endpoint load balancers and orchestrators call later.</li>
+<li><strong>Error handlers</strong> turn failures into simple JSON:</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Situation</th>
+<th>Response</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Database unreachable (<code>OperationalError</code>)</td>
+<td>500 <code>Database connection failed</code></td>
+</tr>
+<tr>
+<td>Any other database error</td>
+<td>500 <code>A database error occurred</code></td>
+</tr>
+<tr>
+<td>Normal HTTP errors (404, 405...)</td>
+<td>JSON with the error name</td>
+</tr>
+<tr>
+<td>Anything unexpected</td>
+<td>500 <code>Internal server error</code></td>
+</tr>
+</tbody>
+</table>
+<p>Details are written to the server log only, so passwords and internals are never exposed to the browser. On a database error the session is rolled back so the next request starts clean.</p>
+<h3>6.6 Frontend</h3>
+<p><strong><code>index.html</code></strong> contains the form (Name, Place, Phone, REGISTER and a hidden CANCEL button) and an empty table body that JavaScript fills.</p>
+<p><strong><code>app.js</code></strong> works like this:</p>
+<ul>
+<li><strong><code>request(url, options)</code></strong> wraps <code>fetch()</code>. It sends JSON, parses the reply, and throws an error carrying the API's message if the status is not OK.</li>
+<li><strong><code>loadRegistrations()</code></strong> calls <code>GET /api/registrations</code> and passes the result to <code>renderTable()</code>, which builds the table rows with DOM methods.</li>
+<li><strong>Register / Update:</strong> the form's submit handler checks the variable <code>editingId</code>. If it is <code>null</code> it sends a <code>POST</code>; if it holds a number it sends a <code>PUT</code>. Afterwards it resets the form and reloads the table.</li>
+<li><strong>Edit:</strong> <code>startEdit(id)</code> fetches that record, fills the form, sets <code>editingId</code>, and changes the button to UPDATE. CANCEL resets everything.</li>
+<li><strong>Delete:</strong> shows a <code>confirm()</code> dialog, sends <code>DELETE</code>, then reloads the table.</li>
+<li>Errors from the API appear in a message box above the table.</li>
+</ul>
+<hr>
+<h2>7. API Reference</h2>
+<p>Base URL: <code>http://127.0.0.1:5000</code></p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Endpoint</th>
+<th>Body</th>
+<th>Success</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET</td>
+<td><code>/health</code></td>
+<td>none</td>
+<td>200 <code>{&quot;status&quot;: &quot;UP&quot;}</code></td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/registrations</code></td>
+<td>name, place, phone</td>
+<td>201 + record</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/registrations</code></td>
+<td>none</td>
+<td>200 + list</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/registrations/&lt;id&gt;</code></td>
+<td>none</td>
+<td>200 + record</td>
+</tr>
+<tr>
+<td>PUT</td>
+<td><code>/api/registrations/&lt;id&gt;</code></td>
+<td>name, place, phone</td>
+<td>200 + updated record</td>
+</tr>
+<tr>
+<td>DELETE</td>
+<td><code>/api/registrations/&lt;id&gt;</code></td>
+<td>none</td>
+<td>200 <code>{&quot;message&quot;: &quot;Registration deleted&quot;}</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example record returned by the API:</strong></p>
+<pre><code class="language-json">{
+  &#34;id&#34;: 1,
+  &#34;name&#34;: &#34;Harish&#34;,
+  &#34;place&#34;: &#34;Hyderabad&#34;,
+  &#34;phone&#34;: &#34;9876543210&#34;,
+  &#34;created_at&#34;: &#34;2026-09-30T17:45:12&#34;,
+  &#34;updated_at&#34;: &#34;2026-09-30T17:45:12&#34;
+}
+</code></pre>
+<p><strong>Example error:</strong></p>
+<pre><code class="language-json">{ &#34;error&#34;: &#34;name is required&#34; }
+</code></pre>
+<p><strong>Testing with curl:</strong></p>
+<pre><code class="language-bash"># Create
+curl -X POST http://127.0.0.1:5000/api/registrations \
+  -H &#34;Content-Type: application/json&#34; \
+  -d &#39;{&#34;name&#34;: &#34;Harish&#34;, &#34;place&#34;: &#34;Hyderabad&#34;, &#34;phone&#34;: &#34;9876543210&#34;}&#39;
+
+# Read all / one
+curl http://127.0.0.1:5000/api/registrations
+curl http://127.0.0.1:5000/api/registrations/1
+
+# Update
+curl -X PUT http://127.0.0.1:5000/api/registrations/1 \
+  -H &#34;Content-Type: application/json&#34; \
+  -d &#39;{&#34;name&#34;: &#34;Harish Gundimeda&#34;, &#34;place&#34;: &#34;Hyderabad&#34;, &#34;phone&#34;: &#34;9876543210&#34;}&#39;
+
+# Delete
+curl -X DELETE http://127.0.0.1:5000/api/registrations/1
+</code></pre>
+<p>Try bad input too (an empty name, or ID <code>abc</code>, or ID <code>9999</code>) and confirm you get 400, 400 and 404.</p>
+<hr>
+<h2>8. Setup and Running (Windows, Git Bash)</h2>
+<ol>
+<li>
+<p><strong>Install</strong> Python 3 and MySQL 8, and make sure the MySQL service is running.</p>
+</li>
+<li>
+<p><strong>Create the database, table and user.</strong> Open the MySQL Command Line Client, log in as root, and run:</p>
+<pre><code class="language-sql">CREATE DATABASE IF NOT EXISTS registration_db
+  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE registration_db;
+
+CREATE TABLE IF NOT EXISTS registrations (
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  name       VARCHAR(100) NOT NULL,
+  place      VARCHAR(100) NOT NULL,
+  phone      VARCHAR(20)  NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE USER IF NOT EXISTS &#39;registration_user&#39;@&#39;localhost&#39; IDENTIFIED BY &#39;your_password&#39;;
+GRANT SELECT, INSERT, UPDATE, DELETE ON registration_db.registrations TO &#39;registration_user&#39;@&#39;localhost&#39;;
+FLUSH PRIVILEGES;
+</code></pre>
+</li>
+<li>
+<p><strong>Create a virtual environment</strong> in the project folder and activate it:</p>
+<pre><code class="language-bash">python -m venv venv
+source venv/Scripts/activate
+</code></pre>
+<p>A virtual environment is a private folder of Python packages for this project only, so versions do not clash with other projects. On Linux/macOS the activate path is <code>venv/bin/activate</code>.</p>
+</li>
+<li>
+<p><strong>Install dependencies:</strong> <code>pip install -r requirements.txt</code></p>
+</li>
+<li>
+<p><strong>Configure:</strong> <code>cp .env.example .env</code>, then edit <code>.env</code> so <code>DB_PASSWORD</code> matches the MySQL user's password.</p>
+</li>
+<li>
+<p><strong>Run:</strong> <code>python app.py</code>, then open http://127.0.0.1:5000</p>
+</li>
+</ol>
+<hr>
+<h2>9. Troubleshooting</h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Cause</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>venv/bin/activate: No such file</code></td>
+<td>venv not created, or on Windows</td>
+<td>Run <code>python -m venv venv</code>; on Windows use <code>source venv/Scripts/activate</code></td>
+</tr>
+<tr>
+<td><code>python3</code> not found (Windows)</td>
+<td>Windows uses <code>python</code> or <code>py</code></td>
+<td>Use <code>python</code> or <code>py</code></td>
+</tr>
+<tr>
+<td><code>Database connection failed</code> in the page</td>
+<td>Wrong password in <code>.env</code>, MySQL not running, or user/DB not created</td>
+<td>Check <code>.env</code>, start the MySQL service, re-run the setup SQL</td>
+</tr>
+<tr>
+<td><code>Access denied for user</code> in the terminal log</td>
+<td>Password mismatch</td>
+<td>Make <code>.env</code> match the <code>CREATE USER</code> password (or <code>ALTER USER</code> to change it)</td>
+</tr>
+<tr>
+<td><code>Table 'registrations' doesn't exist</code></td>
+<td>Table was never created</td>
+<td>Run the <code>CREATE TABLE</code> statement inside <code>registration_db</code></td>
+</tr>
+<tr>
+<td><code>cryptography package is required</code></td>
+<td>Dependency missing</td>
+<td><code>pip install -r requirements.txt</code> inside the activated venv</td>
+</tr>
+<tr>
+<td>Port 5000 already in use</td>
+<td>Another program uses it</td>
+<td>Change the port in the last line of <code>app.py</code></td>
+</tr>
+<tr>
+<td>Changes to <code>.env</code> ignored</td>
+<td>App reads it only at start</td>
+<td>Stop and restart <code>python app.py</code></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>10. Security Notes</h2>
+<ul>
+<li>Credentials come from environment variables; <code>.env</code> is never committed.</li>
+<li>The app uses a limited MySQL user, not root.</li>
+<li>SQLAlchemy uses parameterized queries, which protects against SQL injection.</li>
+<li>Input is validated on the server; the frontend escapes output with <code>textContent</code>.</li>
+<li>Error messages never include passwords or stack traces.</li>
+<li><code>debug=True</code> in <code>app.py</code> is for local development only. It must be turned off before any real deployment, because debug mode can expose an interactive console.</li>
+<li>Flask's built-in server is for development. Production deployments use a server like Gunicorn.</li>
+</ul>
+<hr>
+<h2>11. Limitations and Next Stages</h2>
+<p>Intentionally left out for now: automated tests, duplicate-phone checks, phone-format validation, authentication, and pagination.</p>
+<p>The structure is ready for the planned stages:</p>
+<table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>What it adds</th>
+<th>Why the current structure helps</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Testing (pytest)</td>
+<td>Automated tests of the API</td>
+<td><code>create_app()</code> factory and a separate config make it easy to test</td>
+</tr>
+<tr>
+<td>Docker / Compose</td>
+<td>Package app and MySQL as containers</td>
+<td>Settings already come from environment variables</td>
+</tr>
+<tr>
+<td>CI/CD (Jenkins, GitHub Actions)</td>
+<td>Automatic build, test, deploy</td>
+<td><code>requirements.txt</code> is pinned and <code>.gitignore</code> is clean</td>
+</tr>
+<tr>
+<td>Cloud, Kubernetes, Terraform</td>
+<td>Deployment and infrastructure as code</td>
+<td><code>/health</code> endpoint is ready for health probes</td>
+</tr>
+<tr>
+<td>Monitoring</td>
+<td>Metrics and alerts</td>
+<td>Server logging is already in place</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>12. Glossary</h2>
+<table>
+<thead>
+<tr>
+<th>Term</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>API</strong></td>
+<td>A set of URLs a program can call to use another program's features</td>
+</tr>
+<tr>
+<td><strong>CRUD</strong></td>
+<td>Create, Read, Update, Delete</td>
+</tr>
+<tr>
+<td><strong>Endpoint</strong></td>
+<td>One URL + HTTP method combination, such as <code>GET /health</code></td>
+</tr>
+<tr>
+<td><strong>ORM</strong></td>
+<td>Tool that maps database tables to Python classes</td>
+</tr>
+<tr>
+<td><strong>Virtual environment</strong></td>
+<td>Isolated Python packages for one project</td>
+</tr>
+<tr>
+<td><strong>Environment variable</strong></td>
+<td>A setting stored outside the code, such as a password</td>
+</tr>
+<tr>
+<td><strong>Blueprint</strong></td>
+<td>A Flask way to group related routes</td>
+</tr>
+<tr>
+<td><strong>Primary key</strong></td>
+<td>The column that uniquely identifies each row (<code>id</code>)</td>
+</tr>
+<tr>
+<td><strong>Idempotent</strong></td>
+<td>Repeating the request gives the same result (PUT and DELETE are meant to be)</td>
+</tr>
+</tbody>
+</table>
+
+
+<!--claude-mermaid-runtime-begin:3477-->
+<style>.mermaid-diagram{margin-block:4px}.mermaid-diagram svg{display:block;margin:0 auto;max-width:100%;height:auto}</style>
+<script src="/_runtime/mermaid-11.16.1.min.js"></script>
+<script>(function(){
+var CFG={"palettes":{"light":{"surface":"#f4efe4","text":"#42392e","line":"#8a7f6d","border":"#7a6c52","bg":"#fffdf8"},"dark":{"surface":"#262b34","text":"#f2f3f5","line":"#a8adb8","border":"#9aa4b8","bg":"#1f232b"}}};
+if(typeof mermaid==='undefined')return;
+var pres=Array.prototype.slice.call(document.querySelectorAll('pre.mermaid')).filter(function(p){if(p.hasAttribute('data-claude-mermaid-claimed'))return false;p.setAttribute('data-claude-mermaid-claimed','1');return true;});
+if(!pres.length)return;
+var mq=window.matchMedia?window.matchMedia('(prefers-color-scheme: dark)'):null;
+var root=document.documentElement;
+var items=pres.map(function(pre){
+var mount=document.createElement('div');mount.className='mermaid-diagram';
+return {pre:pre,mount:mount,src:pre.textContent||''};
+});
+var seq=0;
+var renderGen=0;
+var lastKey='';
+function pageBg(fallback){
+var els=[document.body,document.documentElement];
+for(var i=0;i<els.length;i++){
+var c=els[i]&&getComputedStyle(els[i]).backgroundColor;
+if(c&&c!=='transparent'&&c!=='rgba(0, 0, 0, 0)')return c;
+}
+return fallback;
+}
+function render(){
+var theme=root.getAttribute('data-theme');
+var dark=theme==='dark'||(!!(mq&&mq.matches)&&theme!=='light');
+var pal=dark?CFG.palettes.dark:CFG.palettes.light;
+var bg=pageBg(pal.bg);
+var key=(dark?'d':'l')+'|'+bg;
+if(key===lastKey)return;
+lastKey=key;
+var gen=++renderGen;
+var font=getComputedStyle(document.body).fontFamily||'sans-serif';
+var nat={useMaxWidth:false};
+mermaid.initialize({
+startOnLoad:false,securityLevel:'strict',theme:'base',
+flowchart:nat,sequence:nat,er:nat,state:nat,class:nat,pie:nat,
+gantt:nat,journey:nat,timeline:nat,gitGraph:nat,mindmap:nat,xyChart:nat,
+quadrantChart:nat,sankey:nat,c4:nat,requirement:nat,block:nat,
+packet:nat,kanban:nat,architecture:nat,radar:nat,
+themeVariables:{background:bg,mainBkg:pal.surface,primaryColor:pal.surface,
+primaryTextColor:pal.text,lineColor:pal.line,primaryBorderColor:pal.border,
+nodeBorder:pal.border,clusterBorder:pal.border,edgeLabelBackground:bg,
+clusterBkg:'rgba(127,127,127,0.07)',titleColor:pal.text,
+darkMode:dark,rowOdd:bg,rowEven:'rgba(127,127,127,0.07)',
+attributeBackgroundColorOdd:bg,attributeBackgroundColorEven:'rgba(127,127,127,0.07)',
+fontSize:'16px',fontFamily:font},
+themeCSS:'.node rect, .node circle, .node polygon, .node path, .cluster rect { stroke-width: 2px; }'
+});
+items.forEach(function(it){
+var id='claude-mermaid-'+seq++;
+mermaid.render(id,it.src).then(function(r){
+if(gen!==renderGen)return;
+var prev=it.pre.previousElementSibling;
+if(prev&&prev.className==='mermaid-diagram'&&prev!==it.mount)return;
+it.mount.innerHTML=r.svg;
+if(!it.mount.parentNode)it.pre.parentNode.insertBefore(it.mount,it.pre);
+it.pre.style.display='none';
+},function(){
+var scratch=document.getElementById(id);
+if(scratch)scratch.parentNode.removeChild(scratch);
+scratch=document.getElementById('d'+id);
+if(scratch)scratch.parentNode.removeChild(scratch);
+if(gen!==renderGen)return;
+if(it.mount.parentNode)it.mount.parentNode.removeChild(it.mount);
+it.pre.style.display='';
+});
+});
+}
+render();
+if(mq&&mq.addEventListener)mq.addEventListener('change',render);
+if(typeof MutationObserver!=='undefined')new MutationObserver(render).observe(root,{attributes:true,attributeFilter:['data-theme']});
+})();</script>
+<!--claude-mermaid-runtime-end-->
+</body></html>

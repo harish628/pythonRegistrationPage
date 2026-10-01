@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <main class="container">
+        <h1>Registration Form</h1>
+
+        <form id="registration-form" novalidate>
+            <div class="field">
+                <label for="name">Name:</label>
+                <input type="text" id="name" maxlength="100" required>
+            </div>
+
+            <div class="field">
+                <label for="place">Place:</label>
+                <input type="text" id="place" maxlength="100" required>
+            </div>
+
+            <div class="field">
+                <label for="phone">Phone:</label>
+                <input type="tel" id="phone" maxlength="20" required>
+            </div>
+
+            <div class="buttons">
+                <button type="submit" id="submit-btn">REGISTER</button>
+                <button type="button" id="cancel-btn" class="secondary hidden">CANCEL</button>
+            </div>
+        </form>
+
+        <p id="message" class="message hidden"></p>
+
+        <h2>Registrations</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Place</th>
+                    <th>Phone</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="registrations-body"></tbody>
+        </table>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
