@@ -4,6 +4,7 @@ const form = document.getElementById("registration-form");
 const nameInput = document.getElementById("name");
 const placeInput = document.getElementById("place");
 const phoneInput = document.getElementById("phone");
+const emailInput = document.getElementById("email");
 const submitBtn = document.getElementById("submit-btn");
 const cancelBtn = document.getElementById("cancel-btn");
 const messageBox = document.getElementById("message");
@@ -115,6 +116,7 @@ form.addEventListener("submit", async (event) => {
         name: nameInput.value.trim(),
         place: placeInput.value.trim(),
         phone: phoneInput.value.trim(),
+        email: emailInput.value.trim(),
     };
 
     try {
@@ -167,7 +169,10 @@ async function deleteRegistration(id) {
     }
 
     try {
-        await request(`${API_URL}/${id}`, { method: "DELETE" });
+        await request(`${API_URL}/${id}`, {
+            method: "DELETE",
+            body: JSON.stringify({ email: emailInput.value.trim() }),
+        });
         showMessage("Registration deleted.");
         if (editingId === id) {
             resetForm();
