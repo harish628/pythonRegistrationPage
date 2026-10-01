@@ -37,6 +37,7 @@ pipeline {
                     kubectl apply -f registration_App/k8s/namespace.yaml
                     kubectl apply -f registration_App/k8s/configmap.yaml
                     kubectl apply -f registration_App/k8s/service.yaml
+                    kubectl apply -f registration_App/k8s/secret.yaml
                     kubectl -n "$KUBE_NAMESPACE" get configmap registration-app-config
                     kubectl -n "$KUBE_NAMESPACE" get secret registration-app-secret
                 '''
