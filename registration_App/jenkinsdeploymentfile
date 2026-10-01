@@ -1,0 +1,65 @@
+pipeline {
+    agent any
+
+    parameters {
+        string(
+            name: 'IMAGE_URI',
+            defaultValue: '',
+            description: 'Full container image URI, for example 123456789012.dkr.ecr.ap-south-1.amazonaws.com/registration-app:42'
+        )
+    }
+
+    environment {
+        KUBE_NAMESPACE = 'registration'
+        KUBE_DEPLOYMENT = 'registration-app'
+        KUBE_CONTAINER = 'registration-app'
+    }
+
+    stages {
+        stage('Validate parameters') {
+            steps {
+                script {
+                    if (!params.IMAGE_URI?.trim()) {
+                        error('IMAGE_URI is required')
+                    }
+                }
+                sh 'kubectl version --client'
+            }
+        }
+
+        stage('Apply Kubernetes resources') {
+            steps {
+                sh '''
+                    set -eu
+                    kubectl apply -f registration_App/k8s/namespace.yaml
+                    kubectl apply -f registration_App/k8s/configmap.yaml
+                    kubectl apply -f registration_App/k8s/service.yaml
+                '''
+            }
+        }
+
+        stage('Deploy image') {
+            steps {
+                sh '''
+                    set -eu
+                    kubectl apply -f registration_App/k8s/deployment.yaml
+                    kubectl -n "$KUBE_NAMESPACE" set image \
+                      deployment/$KUBE_DEPLOYMENT \
+                      $KUBE_CONTAINER="$IMAGE_URI"
+                    kubectl -n "$KUBE_NAMESPACE" rollout status \
+                      deployment/$KUBE_DEPLOYMENT --timeout=180s
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Deployment completed with image: ${params.IMAGE_URI}"
+        }
+        failure {
+            sh 'kubectl -n "$KUBE_NAMESPACE" get pods -o wide || true'
+            sh 'kubectl -n "$KUBE_NAMESPACE" describe deployment "$KUBE_DEPLOYMENT" || true'
+        }
+    }
+}
