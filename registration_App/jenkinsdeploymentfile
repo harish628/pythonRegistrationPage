@@ -37,32 +37,23 @@ pipeline {
                     kubectl apply -f registration_App/k8s/namespace.yaml
                     kubectl apply -f registration_App/k8s/configmap.yaml
                     kubectl apply -f registration_App/k8s/service.yaml
+                    kubectl -n "$KUBE_NAMESPACE" get configmap registration-app-config
+                    kubectl -n "$KUBE_NAMESPACE" get secret registration-app-secret
                 '''
             }
         }
 
         stage('Deploy image') {
             steps {
-                                withEnv(["DEPLOY_IMAGE=${params.IMAGE_URI}"]) {
-                                        sh '''
-                                                set -eu
-                        awk -v image="$DEPLOY_IMAGE" '
-                            /^[[:space:]]*image:/ {
-                                print "          image: " image
-                                next
-                            }
-                            { print }
-                        ' registration_App/k8s/deployment.yaml > deployment.rendered.yaml
+                sh '''
+                    sed -i "s|^[[:space:]]*image:.*|          image: ${IMAGE_URI}|" registration_App/k8s/deployment.yaml
 
-                        echo "Rendered deployment image:"
-                        grep -E '^[[:space:]]*image:' deployment.rendered.yaml
+                    cat registration_App/k8s/deployment.yaml
 
-                        kubectl apply -f deployment.rendered.yaml
-                                                kubectl -n "$KUBE_NAMESPACE" rollout status \
-                                                    deployment/$KUBE_DEPLOYMENT --timeout=180s
-                        rm -f deployment.rendered.yaml
-                                        '''
-                                }
+                    kubectl apply -f registration_App/k8s/deployment.yaml
+
+                    kubectl -n ${KUBE_NAMESPACE} rollout status deployment/${KUBE_DEPLOYMENT} --timeout=180s
+                '''
             }
         }
     }
