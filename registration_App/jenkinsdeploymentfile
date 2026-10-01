@@ -46,6 +46,8 @@ pipeline {
                                 withEnv(["DEPLOY_IMAGE=${params.IMAGE_URI}"]) {
                                         sh '''
                                                 set -eu
+                                                cat registration_App/k8s/deployment.yaml
+                                                
                                                 kubectl apply -f registration_App/k8s/deployment.yaml
                                                 kubectl -n "$KUBE_NAMESPACE" set image \
                                                     deployment/$KUBE_DEPLOYMENT \
