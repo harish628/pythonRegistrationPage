@@ -5,7 +5,7 @@ import boto3
 
 def send_notification(recipient, subject, body):
     sender = os.getenv("SES_SENDER_EMAIL")
-    region = os.getenv("AWS_REGION", "us-east-1")
+    region = os.getenv("AWS_REGION", "ap-south-1")
 
     if not sender:
         raise RuntimeError("SES_SENDER_EMAIL is not configured")
