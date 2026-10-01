@@ -24,7 +24,7 @@ def parse_id(raw_id):
     return None
 
 
-def validate_payload(data):
+def validate_payload(data, require_email=True):
     """Return (cleaned_data, error_message). Only one of them is not None."""
     if not isinstance(data, dict):
         return None, "Request body must be valid JSON"
@@ -39,10 +39,11 @@ def validate_payload(data):
             return None, f"{field} must be at most {max_length} characters"
         cleaned[field] = value
 
-    email = data.get("email")
-    if not isinstance(email, str) or not EMAIL_PATTERN.fullmatch(email.strip()):
-        return None, "email must be a valid email address"
-    cleaned["email"] = email.strip()
+    if require_email:
+        email = data.get("email")
+        if not isinstance(email, str) or not EMAIL_PATTERN.fullmatch(email.strip()):
+            return None, "email must be a valid email address"
+        cleaned["email"] = email.strip()
     return cleaned, None
 
 
@@ -96,7 +97,9 @@ def update_registration(id):
     if registration_id is None:
         return error("Invalid ID", 400)
 
-    cleaned, problem = validate_payload(request.get_json(silent=True))
+    cleaned, problem = validate_payload(
+        request.get_json(silent=True), require_email=False
+    )
     if problem:
         return error(problem, 400)
 
@@ -108,11 +111,6 @@ def update_registration(id):
     registration.place = cleaned["place"]
     registration.phone = cleaned["phone"]
     db.session.commit()
-    notify_safely(
-        cleaned["email"],
-        "Registration updated",
-        f"Your registration was updated successfully. Registration ID: {registration.id}.",
-    )
     return jsonify(registration.to_dict()), 200
 
 
@@ -126,18 +124,6 @@ def delete_registration(id):
     if registration is None:
         return error("Registration not found", 404)
 
-    email_payload = request.get_json(silent=True)
-    if not isinstance(email_payload, dict):
-        return error("Request body must contain a valid email", 400)
-    email = email_payload.get("email")
-    if not isinstance(email, str) or not EMAIL_PATTERN.fullmatch(email.strip()):
-        return error("email must be a valid email address", 400)
-
     db.session.delete(registration)
     db.session.commit()
-    notify_safely(
-        email.strip(),
-        "Registration deleted",
-        f"Your registration was deleted successfully. Registration ID: {registration_id}.",
-    )
     return jsonify({"message": "Registration deleted"}), 200

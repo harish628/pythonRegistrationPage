@@ -47,6 +47,7 @@ async function request(url, options = {}) {
 function resetForm() {
     form.reset();
     editingId = null;
+    emailInput.required = true;
     submitBtn.textContent = "REGISTER";
     cancelBtn.classList.add("hidden");
 }
@@ -116,8 +117,10 @@ form.addEventListener("submit", async (event) => {
         name: nameInput.value.trim(),
         place: placeInput.value.trim(),
         phone: phoneInput.value.trim(),
-        email: emailInput.value.trim(),
     };
+    if (editingId === null) {
+        payload.email = emailInput.value.trim();
+    }
 
     try {
         if (editingId === null) {
@@ -147,6 +150,7 @@ async function startEdit(id) {
         phoneInput.value = item.phone;
 
         editingId = item.id;
+        emailInput.required = false;
         submitBtn.textContent = "UPDATE";
         cancelBtn.classList.remove("hidden");
         hideMessage();
@@ -169,10 +173,7 @@ async function deleteRegistration(id) {
     }
 
     try {
-        await request(`${API_URL}/${id}`, {
-            method: "DELETE",
-            body: JSON.stringify({ email: emailInput.value.trim() }),
-        });
+        await request(`${API_URL}/${id}`, { method: "DELETE" });
         showMessage("Registration deleted.");
         if (editingId === id) {
             resetForm();
