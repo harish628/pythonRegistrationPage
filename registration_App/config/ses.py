@@ -1,6 +1,7 @@
 import os
 
 import boto3
+from botocore.config import Config
 
 
 def send_notification(recipient, subject, body):
@@ -10,7 +11,15 @@ def send_notification(recipient, subject, body):
     if not sender:
         raise RuntimeError("SES_SENDER_EMAIL is not configured")
 
-    ses = boto3.client("ses", region_name=region)
+    ses = boto3.client(
+        "ses",
+        region_name=region,
+        config=Config(
+            connect_timeout=5,
+            read_timeout=10,
+            retries={"max_attempts": 1, "mode": "standard"},
+        ),
+    )
     return ses.send_email(
         Source=sender,
         Destination={"ToAddresses": [recipient]},
