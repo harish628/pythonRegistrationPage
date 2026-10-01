@@ -34,9 +34,9 @@ pipeline {
             steps {
                 sh '''
                     set -eu
-                    kubectl apply -f k8s/namespace.yaml
-                    kubectl apply -f k8s/configmap.yaml
-                    kubectl apply -f k8s/service.yaml
+                    kubectl apply -f registration_App/k8s/namespace.yaml
+                    kubectl apply -f registration_App/k8s/configmap.yaml
+                    kubectl apply -f registration_App/k8s/service.yaml
                 '''
             }
         }
@@ -46,7 +46,7 @@ pipeline {
                                 withEnv(["DEPLOY_IMAGE=${params.IMAGE_URI}"]) {
                                         sh '''
                                                 set -eu
-                                                kubectl apply -f k8s/deployment.yaml
+                                                kubectl apply -f registration_App/k8s/deployment.yaml
                                                 kubectl -n "$KUBE_NAMESPACE" set image \
                                                     deployment/$KUBE_DEPLOYMENT \
                                                     $KUBE_CONTAINER="$DEPLOY_IMAGE"
