@@ -1,3 +1,14 @@
+
+# Running Application
+python -m venv venv
+source venv/Scripts/activate --> Windows
+source venv/bin/activate ---> In linux
+pip install -r requirements.txt
+cp .env.example .env
+python app.py
+
+# < ------------------------------------------------->
+
 # Registration App
 
 ## 1. Project Overview
