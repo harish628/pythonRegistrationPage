@@ -46,14 +46,21 @@ pipeline {
                                 withEnv(["DEPLOY_IMAGE=${params.IMAGE_URI}"]) {
                                         sh '''
                                                 set -eu
-                                                cat registration_App/k8s/deployment.yaml
-                                                
-                                                kubectl apply -f registration_App/k8s/deployment.yaml
-                                                kubectl -n "$KUBE_NAMESPACE" set image \
-                                                    deployment/$KUBE_DEPLOYMENT \
-                                                    $KUBE_CONTAINER="$DEPLOY_IMAGE"
+                        awk -v image="$DEPLOY_IMAGE" '
+                            /^[[:space:]]*image:/ {
+                                print "          image: " image
+                                next
+                            }
+                            { print }
+                        ' registration_App/k8s/deployment.yaml > deployment.rendered.yaml
+
+                        echo "Rendered deployment image:"
+                        grep -E '^[[:space:]]*image:' deployment.rendered.yaml
+
+                        kubectl apply -f deployment.rendered.yaml
                                                 kubectl -n "$KUBE_NAMESPACE" rollout status \
                                                     deployment/$KUBE_DEPLOYMENT --timeout=180s
+                        rm -f deployment.rendered.yaml
                                         '''
                                 }
             }
