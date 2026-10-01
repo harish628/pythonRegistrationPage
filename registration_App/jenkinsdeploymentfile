@@ -22,6 +22,7 @@ pipeline {
                     if (!params.IMAGE_URI?.trim()) {
                         error('IMAGE_URI is required')
                     }
+                    echo $IMAGE_URI
                 }
                 sh 'kubectl version --client'
             }
@@ -42,6 +43,9 @@ pipeline {
             steps {
                 sh '''
                     set -eu
+
+                    sed -i "s|^[[:space:]]*image:.*|        image: ${IMAGE_URI}|" deployment.yaml
+
                     kubectl apply -f registration_App/k8s/deployment.yaml
                     kubectl -n "$KUBE_NAMESPACE" set image \
                       deployment/$KUBE_DEPLOYMENT \
