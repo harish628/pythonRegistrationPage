@@ -28,7 +28,7 @@ spec:
       containers:
         - name: registration-app
 
-          image: <AWS_ACCOUNT_ID>.dkr.ecr.ap-south-1.amazonaws.com/registration-app:<IMAGE_TAG>
+          image: 840986438223.dkr.ecr.ap-south-1.amazonaws.com/python-registration:world
 
           imagePullPolicy: IfNotPresent
 
