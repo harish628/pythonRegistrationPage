@@ -5,7 +5,7 @@ metadata:
   namespace: registration
 
 data:
-  DB_HOST: "registrationpageinstancenew.cr226cycuxh5.ap-south-1.rds.amazonaws.com"
+  DB_HOST: "october-mysql.cr226cycuxh5.ap-south-1.rds.amazonaws.com"
   DB_PORT: "3306"
   DB_NAME: "registration_db"
 
