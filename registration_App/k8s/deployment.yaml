@@ -28,7 +28,7 @@ spec:
       containers:
         - name: registration-app
 
-          image: 840986438223.dkr.ecr.ap-south-1.amazonaws.com/python-registration:world
+          image: 474717635507.dkr.ecr.ap-southeast-2.amazonaws.com/python-registration:kali
 
           imagePullPolicy: IfNotPresent
 
