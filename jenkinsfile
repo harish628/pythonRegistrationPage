@@ -1,0 +1,184 @@
+pipeline {
+    agent any
+
+    parameters {
+        string(
+            name: 'ECR_REPOSITORY',
+            defaultValue: 'python-registration',
+            description: 'ECR repository name'
+        )
+
+        string(
+            name: 'IMAGE_TAG',
+            defaultValue: '',
+            description: 'Leave empty to use Jenkins BUILD_NUMBER'
+        )
+
+        string(
+            name: 'AWS_REGION',
+            defaultValue: 'ap-south-1',
+            description: 'AWS region'
+        )
+
+        string(
+            name: 'GIT_REPOSITORY',
+            defaultValue: 'https://github.com/harish628/pythonRegistrationPage.git',
+            description: 'Git repository URL'
+        )
+
+        string(
+            name: 'GIT_BRANCH',
+            defaultValue: 'main',
+            description: 'Git branch'
+        )
+    }
+
+    environment {
+        AWS_REGION      = "${params.AWS_REGION}"
+        ECR_REPOSITORY  = "${params.ECR_REPOSITORY}"
+    }
+
+    stages {
+
+        stage('Initialize Parameters') {
+            steps {
+                script {
+
+                    if (params.IMAGE_TAG?.trim()) {
+                        env.IMAGE_TAG = params.IMAGE_TAG.trim()
+                    } else {
+                        env.IMAGE_TAG = "${BUILD_NUMBER}"
+                    }
+
+                    echo "===================================="
+                    echo "AWS Region     : ${env.AWS_REGION}"
+                    echo "ECR Repository : ${env.ECR_REPOSITORY}"
+                    echo "Image Tag      : ${env.IMAGE_TAG}"
+                    echo "Build Number   : ${BUILD_NUMBER}"
+                    echo "===================================="
+                }
+            }
+        }
+
+        stage('Resolve AWS Account ID') {
+            steps {
+                script {
+                    env.AWS_ACCOUNT_ID = sh(
+                        script: '''
+                            aws sts get-caller-identity \
+                            --query Account \
+                            --output text \
+                            --region "$AWS_REGION"
+                        ''',
+                        returnStdout: true
+                    ).trim()
+
+                    if (!(env.AWS_ACCOUNT_ID ==~ /[0-9]{12}/)) {
+                        error('Invalid AWS Account ID.')
+                    }
+
+                    echo "AWS Account ID: ${env.AWS_ACCOUNT_ID}"
+                }
+            }
+        }
+
+        stage('Checkout and Validate Source') {
+            steps {
+                script {
+
+                    git(
+                        branch: "${params.GIT_BRANCH}",
+                        url: "${params.GIT_REPOSITORY}"
+                    )
+
+                    if (!fileExists('registration_App/Dockerfile')) {
+                        error(
+                            'Dockerfile is missing from registration_App directory.'
+                        )
+                    }
+
+                    echo "Dockerfile validation successful."
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+
+                    env.ECR_REGISTRY =
+                        "${env.AWS_ACCOUNT_ID}.dkr.ecr.${env.AWS_REGION}.amazonaws.com"
+
+                    env.IMAGE_URI =
+                        "${env.ECR_REGISTRY}/${env.ECR_REPOSITORY}:${env.IMAGE_TAG}"
+
+                    echo "Building:"
+                    echo "${env.IMAGE_URI}"
+
+                    sh '''
+                        set -eu
+
+                        docker build \
+                            --pull \
+                            -t "$IMAGE_URI" \
+                            registration_App
+
+                        docker image inspect "$IMAGE_URI" >/dev/null
+                    '''
+
+                    echo "Docker image built successfully."
+                    echo "IMAGE URI: ${env.IMAGE_URI}"
+                }
+            }
+        }
+
+        stage('Push Image to ECR') {
+            steps {
+                script {
+
+                    sh '''
+                        set -eu
+
+                        echo "Checking ECR repository..."
+
+                        if aws ecr describe-repositories \
+                            --region "$AWS_REGION" \
+                            --repository-names "$ECR_REPOSITORY" \
+                            >/dev/null 2>&1
+                        then
+                            echo "ECR repository already exists."
+                        else
+                            echo "Creating ECR repository..."
+
+                            aws ecr create-repository \
+                                --region "$AWS_REGION" \
+                                --repository-name "$ECR_REPOSITORY"
+                        fi
+
+                        echo "Logging into ECR..."
+
+                        aws ecr get-login-password \
+                            --region "$AWS_REGION" |
+                        docker login \
+                            --username AWS \
+                            --password-stdin "$ECR_REGISTRY"
+
+                        echo "Pushing image..."
+
+                        docker push "$IMAGE_URI"
+
+                        echo "Validating pushed image..."
+
+                        aws ecr describe-images \
+                            --region "$AWS_REGION" \
+                            --repository-name "$ECR_REPOSITORY" \
+                            --image-ids imageTag="$IMAGE_TAG"
+                    '''
+
+                    echo "Image pushed successfully."
+                    echo "IMAGE URI: ${env.IMAGE_URI}"
+                }
+            }
+        }
+    }
+}
