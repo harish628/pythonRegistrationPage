@@ -5,7 +5,7 @@ metadata:
   namespace: registration
 
 data:
-  DB_HOST: "regapp-dev-mysql.cfimkcsq0zzi.ap-southeast-2.rds.amazonaws.com"
+  DB_HOST: "regapp-dev-mysql-db.cbm2wm2k2dzg.ap-southeast-2.rds.amazonaws.com"
   DB_PORT: "3306"
   DB_NAME: "registration_db"
 
