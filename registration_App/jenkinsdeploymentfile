@@ -2,31 +2,58 @@ pipeline {
     agent any
 
     parameters {
-        string(
-            name: 'IMAGE_URI',
-            defaultValue: '',
-            description: 'Full container image URI, for example 123456789012.dkr.ecr.ap-south-1.amazonaws.com/registration-app:42'
-        )
+        string(name: 'IMAGE_URI',       defaultValue: '',
+               description: 'Full image URI, e.g. 123456789012.dkr.ecr.ap-south-1.amazonaws.com/registration-app:42')
+        string(name: 'AWS_REGION',      defaultValue: 'ap-south-1', description: 'AWS region of the EKS cluster')
+        string(name: 'CLUSTER_NAME',    defaultValue: '',           description: 'EKS cluster name')
+        string(name: 'KUBE_NAMESPACE',  defaultValue: 'registration',     description: 'Kubernetes namespace')
+        string(name: 'KUBE_DEPLOYMENT', defaultValue: 'registration-app', description: 'Deployment name')
+        string(name: 'KUBE_CONTAINER',  defaultValue: 'registration-app', description: 'Container name in the deployment')
+        string(name: 'K8S_DIR',         defaultValue: 'registration_App/k8s', description: 'Folder with the Kubernetes manifests')
     }
 
     environment {
-        KUBE_NAMESPACE = 'registration'
-        KUBE_DEPLOYMENT = 'registration-app'
-        KUBE_CONTAINER = 'registration-app'
+        KUBECONFIG = "${WORKSPACE}/.kube/config"   // isolated; avoids the stale default config
     }
 
     stages {
         stage('Validate parameters') {
             steps {
                 script {
-                    if (!params.IMAGE_URI?.trim()) {
-                        error('IMAGE_URI is required')
+                    ['IMAGE_URI', 'AWS_REGION', 'CLUSTER_NAME', 'KUBE_NAMESPACE',
+                     'KUBE_DEPLOYMENT', 'KUBE_CONTAINER', 'K8S_DIR'].each { p ->
+                        if (!params[p]?.trim()) { error("${p} is required") }
                     }
                     if (!(params.IMAGE_URI ==~ /^[A-Za-z0-9][A-Za-z0-9._\/:@-]*$/)) {
                         error('IMAGE_URI contains unsupported characters')
                     }
+                    if (!(params.AWS_REGION ==~ /^[a-z0-9-]+$/)) {
+                        error('AWS_REGION contains unsupported characters')
+                    }
+                    ['CLUSTER_NAME', 'KUBE_NAMESPACE', 'KUBE_DEPLOYMENT', 'KUBE_CONTAINER'].each { p ->
+                        if (!(params[p] ==~ /^[A-Za-z0-9][A-Za-z0-9._-]*$/)) {
+                            error("${p} contains unsupported characters")
+                        }
+                    }
+                    if (!(params.K8S_DIR ==~ /^[A-Za-z0-9._\/-]+$/)) {
+                        error('K8S_DIR contains unsupported characters')
+                    }
                 }
                 sh 'kubectl version --client'
+                sh 'aws --version'
+            }
+        }
+
+        stage('Configure kubeconfig (IAM role)') {
+            steps {
+                sh '''
+                    set -eu
+                    mkdir -p "$(dirname "$KUBECONFIG")"
+                    aws sts get-caller-identity          # should show the CI role
+                    aws eks update-kubeconfig --name "$CLUSTER_NAME" --region "$AWS_REGION"
+                    kubectl config view --minify | grep server
+                    kubectl get ns
+                '''
             }
         }
 
@@ -34,11 +61,11 @@ pipeline {
             steps {
                 sh '''
                     set -eu
-                    kubectl apply -f registration_App/k8s/namespace.yaml
-                    kubectl apply -f registration_App/k8s/configmap.yaml
-                    kubectl apply -f registration_App/k8s/service.yaml
-                    kubectl apply -f registration_App/k8s/secret.yaml
-                    kubectl apply -f registration_App/k8s/ingress.yaml
+                    kubectl apply -f "$K8S_DIR/namespace.yaml"
+                    kubectl apply -f "$K8S_DIR/configmap.yaml"
+                    kubectl apply -f "$K8S_DIR/service.yaml"
+                    kubectl apply -f "$K8S_DIR/secret.yaml"
+                    kubectl apply -f "$K8S_DIR/ingress.yaml"
                     kubectl -n "$KUBE_NAMESPACE" get configmap registration-app-config
                     kubectl -n "$KUBE_NAMESPACE" get secret registration-app-secret
                 '''
@@ -48,13 +75,11 @@ pipeline {
         stage('Deploy image') {
             steps {
                 sh '''
-                    sed -i "s|^[[:space:]]*image:.*|          image: ${IMAGE_URI}|" registration_App/k8s/deployment.yaml
-
-                    cat registration_App/k8s/deployment.yaml
-
-                    kubectl apply -f registration_App/k8s/deployment.yaml
-
-                    kubectl -n ${KUBE_NAMESPACE} rollout status deployment/${KUBE_DEPLOYMENT} --timeout=180s
+                    set -eu
+                    sed -i "s|^\\([[:space:]]*image:\\).*|\\1 ${IMAGE_URI}|" "$K8S_DIR/deployment.yaml"
+                    grep -n "image:" "$K8S_DIR/deployment.yaml"
+                    kubectl apply -f "$K8S_DIR/deployment.yaml"
+                    kubectl -n "$KUBE_NAMESPACE" rollout status deployment/"$KUBE_DEPLOYMENT" --timeout=180s
                 '''
             }
         }
